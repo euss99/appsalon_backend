@@ -3,12 +3,23 @@ import {
   createServices,
   getAllServices,
   getServicesById,
+  updateService,
+  deleteService,
 } from "../controllers/servicesController.js";
 
 const router = express.Router();
 
-router.post("/", createServices);
-router.get("/", getAllServices);
-router.get("/:id", getServicesById);
+router.route("/").get(getAllServices).post(createServices);
+router
+  .route("/:id")
+  .get(getServicesById)
+  .put(updateService)
+  .delete(deleteService);
+
+// router.get("/", getAllServices);
+// router.post("/", createServices);
+// router.get("/:id", getServicesById);
+// router.put("/:id", updateService);
+// router.delete("/:id", deleteService);
 
 export default router;
