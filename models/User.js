@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 import { uniqueToken } from "../utils/index.js";
 
 // Definición del esquema para el modelo de usuario
@@ -33,6 +34,21 @@ const userSchema = mongoose.Schema({
     default: false, // Los usuarios creados no son administradores por defecto
   },
 });
+
+// Middleware para hashear la contraseña antes de guardarla en la BD
+userSchema.pre("save", async function (next) {
+  // Verificar si la contraseña ya ha sido hasheada
+  if (!this.isModified("password")) {
+    next();
+  }
+
+  const salt = await bcrypt.genSalt(10); // Generar un salt para el hash
+  this.password = await bcrypt.hash(this.password, salt); // Hashear la contraseña
+});
+
+userSchema.methods.checkPassword = async function (inputPassword) {
+  return await bcrypt.compare(inputPassword, this.password); // Comparar contraseñas
+};
 
 // Creación del modelo de usuario
 const User = mongoose.model("User", userSchema);
