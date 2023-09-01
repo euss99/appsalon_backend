@@ -126,7 +126,7 @@ const userAuth = async (req, res) => {
   const { user } = req; // req.user es el usuario que se guardo en el middleware
 
   res.json({
-    user: user,
+    user,
   }); // Devuelve el usuario
 };
 

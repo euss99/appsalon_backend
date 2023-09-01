@@ -24,10 +24,10 @@ import User from "../models/User.js";
 
 const authMiddleware = async (req, res, next) => {
   const token = req.headers.authorization; // Leer el token del header
-  const bearer = req.headers.authorization.startsWith("Bearer"); // Verificar que el token empiece con Bearer
+  // const bearer = req.headers.authorization.startsWith("Bearer"); // Verificar que el token empiece con Bearer
 
-  // Verificar si el token existe
-  if (token && bearer) {
+  // Verificar si los headers tienen el token y si empieza con Bearer
+  if (token) {
     try {
       const token = req.headers.authorization.split(" ")[1]; // Obtener el token sin la palabra Bearer
       const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); // Verificar el token
@@ -47,7 +47,7 @@ const authMiddleware = async (req, res, next) => {
       });
     }
   } else {
-    const error = new Error("Token inexistente");
+    const error = new Error("Token inexistente o no es válido");
 
     return res.status(403).json({
       msg: error.message,
