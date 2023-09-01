@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import { sendEmailVerification } from "../emails/authEmailService.js";
+import { generateJWT } from "../utils/index.js";
 
 const registerUser = async (req, res) => {
   // Valida todos los campos
@@ -107,8 +108,10 @@ const loginUser = async (req, res) => {
 
   // Comprobar el password
   if (await user.checkPassword(password)) {
+    const token = generateJWT(user._id);
+
     res.json({
-      msg: "Usuario autenticado",
+      token: token,
     });
   } else {
     const error = new Error("El password es incorrecto");
@@ -119,4 +122,12 @@ const loginUser = async (req, res) => {
   }
 };
 
-export { registerUser, verifyAccount, loginUser };
+const userAuth = async (req, res) => {
+  const { user } = req; // req.user es el usuario que se guardo en el middleware
+
+  res.json({
+    user: user,
+  }); // Devuelve el usuario
+};
+
+export { registerUser, verifyAccount, loginUser, userAuth };
