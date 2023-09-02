@@ -1,4 +1,5 @@
 import { parse, formatISO, startOfDay, endOfDay, isValid } from "date-fns";
+import { validateObjectId, handleNotFoundError } from "../utils/index.js";
 /*
   parse: Convierte una fecha de string a date
   formatISO: Convierte una fecha a formato ISO
@@ -59,4 +60,34 @@ const getAppointmentsByDate = async (req, res) => {
   }
 };
 
-export { createAppointment, getAppointmentsByDate };
+const getAppointmentById = async (req, res) => {
+  const { id } = req.params;
+
+  // Validar que sea un ObjectId valido
+  if (validateObjectId(id, res)) return;
+
+  // Validar que la cita exista
+  const appointment = await Appointment.findById(id).populate("services");
+  if (!appointment) {
+    return handleNotFoundError("La cita no existe", res);
+  }
+
+  // Validar si la persona que esta autenticada es diferente a la que creo la cita
+  // appointment.user es la persona que creo la cita
+  // req.user._id es la persona que esta autenticada
+  if (appointment.user.toString() !== req.user._id.toString()) {
+    const error = new Error("No tiene los permisos para ver esta cita");
+
+    return res.status(403).json({
+      msg: error.message,
+    });
+  }
+
+  try {
+    res.json(appointment);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export { createAppointment, getAppointmentsByDate, getAppointmentById };
