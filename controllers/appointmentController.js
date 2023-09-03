@@ -90,4 +90,43 @@ const getAppointmentById = async (req, res) => {
   }
 };
 
-export { createAppointment, getAppointmentsByDate, getAppointmentById };
+const updateAppointment = async (req, res) => {
+  const { id } = req.params;
+
+  if (validateObjectId(id, res)) return;
+
+  const appointment = await Appointment.findById(id).populate("services");
+  if (!appointment) {
+    return handleNotFoundError("La cita no existe", res);
+  }
+
+  if (appointment.user.toString() !== req.user._id.toString()) {
+    const error = new Error("No tiene los permisos para ver esta cita");
+
+    return res.status(403).json({
+      msg: error.message,
+    });
+  }
+  const { services, date, time, totalAmount } = req.body;
+  appointment.services = services;
+  appointment.date = date;
+  appointment.time = time;
+  appointment.totalAmount = totalAmount;
+
+  try {
+    const result = await appointment.save();
+
+    res.json({
+      msg: "La cita se actualizó correctamente",
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export {
+  createAppointment,
+  getAppointmentsByDate,
+  getAppointmentById,
+  updateAppointment,
+};

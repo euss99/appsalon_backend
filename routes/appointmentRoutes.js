@@ -3,6 +3,7 @@ import {
   createAppointment,
   getAppointmentsByDate,
   getAppointmentById,
+  updateAppointment,
 } from "../controllers/appointmentController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 
@@ -16,5 +17,6 @@ const router = express.Router();
 router.post("/", authMiddleware, createAppointment);
 router.get("/", authMiddleware, getAppointmentsByDate);
 router.get("/:id", authMiddleware, getAppointmentById);
+router.put("/:id", authMiddleware, updateAppointment);
 
 export default router;
