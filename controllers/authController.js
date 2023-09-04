@@ -1,6 +1,9 @@
 import User from "../models/User.js";
-import { sendEmailVerification } from "../emails/authEmailService.js";
-import { generateJWT } from "../utils/index.js";
+import {
+  sendEmailVerification,
+  sendEmailPasswordReset,
+} from "../emails/authEmailService.js";
+import { generateJWT, uniqueToken } from "../utils/index.js";
 
 const registerUser = async (req, res) => {
   // Valida todos los campos
@@ -122,10 +125,97 @@ const loginUser = async (req, res) => {
   }
 };
 
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  // Revisar que el usuario exista
+  const user = await User.findOne({ email });
+  if (!user) {
+    const error = new Error("El usuario no existe");
+
+    return res.status(401).json({
+      msg: error.message,
+    });
+  }
+
+  try {
+    user.token = uniqueToken(); // Genera un token
+    const result = await user.save(); // Guarda el token en la BD
+
+    // Enviar email de reestablecer password
+    sendEmailPasswordReset({
+      name: result.name,
+      email: result.email,
+      token: result.token,
+    });
+
+    res.json({
+      msg: "Se envió un email para reestablecer tu password",
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 const userAuth = async (req, res) => {
   const { user } = req; // req.user es el usuario que se guardo en el middleware
 
   res.json(user); // Devuelve el usuario
 };
 
-export { registerUser, verifyAccount, loginUser, userAuth };
+const verifyPasswordResetToken = async (req, res) => {
+  const { token } = req.params;
+
+  const isValidToken = await User.findOne({ token: token });
+  if (!isValidToken) {
+    const error = new Error("Token no válido");
+
+    return res.status(400).json({
+      msg: error.message,
+    });
+  }
+
+  try {
+    res.json({
+      msg: "Token válido",
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const updatePassword = async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  const user = await User.findOne({ token: token });
+  if (!user) {
+    const error = new Error("Token no válido");
+
+    return res.status(400).json({
+      msg: error.message,
+    });
+  }
+
+  try {
+    user.token = ""; // Elimina el token
+    user.password = password; // Actualiza el password
+    await user.save(); // Guarda los cambios en la BD
+
+    res.json({
+      msg: "Password actualizado correctamente",
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export {
+  registerUser,
+  verifyAccount,
+  loginUser,
+  forgotPassword,
+  userAuth,
+  verifyPasswordResetToken,
+  updatePassword,
+};

@@ -37,7 +37,7 @@ const userSchema = mongoose.Schema({
 
 // Middleware para hashear la contraseña antes de guardarla en la BD
 userSchema.pre("save", async function (next) {
-  // Verificar si la contraseña ya ha sido hasheada
+  // Verificar si la contraseña ha sido modificada y si si, hashearla
   if (!this.isModified("password")) {
     next();
   }
