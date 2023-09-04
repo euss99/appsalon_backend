@@ -1,5 +1,14 @@
 import { parse, formatISO, startOfDay, endOfDay, isValid } from "date-fns";
-import { validateObjectId, handleNotFoundError } from "../utils/index.js";
+import {
+  validateObjectId,
+  handleNotFoundError,
+  convertToPPPPDate,
+} from "../utils/index.js";
+import {
+  sendEmailNewAppointmentToAdmin,
+  sendEmailUpdateAppointmentToAdmin,
+  sendEmailCancelledAppointmentToAdmin,
+} from "../emails/appointmentEmailService.js";
 /*
   parse: Convierte una fecha de string a date
   formatISO: Convierte una fecha a formato ISO
@@ -15,7 +24,13 @@ const createAppointment = async (req, res) => {
 
   try {
     const newAppointment = new Appointment(appointment);
-    await newAppointment.save();
+    const result = await newAppointment.save();
+
+    // Enviamos el email
+    await sendEmailNewAppointmentToAdmin({
+      date: convertToPPPPDate(result.date),
+      time: result.time,
+    });
 
     res.json({
       msg: "Tu reservación se realizó correctamente",
@@ -107,6 +122,7 @@ const updateAppointment = async (req, res) => {
       msg: error.message,
     });
   }
+
   const { services, date, time, totalAmount } = req.body;
   appointment.services = services;
   appointment.date = date;
@@ -116,8 +132,47 @@ const updateAppointment = async (req, res) => {
   try {
     const result = await appointment.save();
 
+    await sendEmailUpdateAppointmentToAdmin({
+      date: convertToPPPPDate(result.date),
+      time: result.time,
+    });
+
     res.json({
       msg: "La cita se actualizó correctamente",
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const deleteAppointment = async (req, res) => {
+  const { id } = req.params;
+
+  if (validateObjectId(id, res)) return;
+
+  const appointment = await Appointment.findById(id).populate("services");
+  if (!appointment) {
+    return handleNotFoundError("La cita no existe", res);
+  }
+
+  if (appointment.user.toString() !== req.user._id.toString()) {
+    const error = new Error("No tiene los permisos para ver esta cita");
+
+    return res.status(403).json({
+      msg: error.message,
+    });
+  }
+
+  try {
+    const result = await appointment.deleteOne();
+
+    await sendEmailCancelledAppointmentToAdmin({
+      date: convertToPPPPDate(result.date),
+      time: result.time,
+    });
+
+    res.json({
+      msg: "La cita se eliminó correctamente",
     });
   } catch (error) {
     console.log(error);
@@ -129,4 +184,5 @@ export {
   getAppointmentsByDate,
   getAppointmentById,
   updateAppointment,
+  deleteAppointment,
 };
