@@ -163,6 +163,20 @@ const userAuth = async (req, res) => {
   res.json(user); // Devuelve el usuario
 };
 
+const adminAuth = async (req, res) => {
+  const { user } = req;
+
+  if (!user.admin) {
+    const error = new Error("No tienes permisos para acceder a esta ruta");
+
+    return res.status(401).json({
+      msg: error.message,
+    });
+  }
+
+  res.json(user);
+};
+
 const verifyPasswordResetToken = async (req, res) => {
   const { token } = req.params;
 
@@ -216,6 +230,7 @@ export {
   loginUser,
   forgotPassword,
   userAuth,
+  adminAuth,
   verifyPasswordResetToken,
   updatePassword,
 };

@@ -4,6 +4,7 @@ import {
   verifyAccount,
   loginUser,
   userAuth,
+  adminAuth,
   forgotPassword,
   verifyPasswordResetToken,
   updatePassword,
@@ -22,5 +23,6 @@ router.patch("/forgot-password/:token", updatePassword);
 
 // Area privada - Requiere un JWT
 router.get("/user", authMiddleware, userAuth);
+router.get("/admin", authMiddleware, adminAuth);
 
 export default router;
