@@ -2,54 +2,50 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import { uniqueToken } from "../utils/index.js";
 
-// Definición del esquema para el modelo de usuario
 const userSchema = mongoose.Schema({
   name: {
     type: String,
     required: true,
-    trim: true, // Elimina espacios en blanco alrededor del nombre
+    trim: true,
   },
   password: {
     type: String,
     required: true,
-    trim: true, // Elimina espacios en blanco alrededor de la contraseña
+    trim: true,
   },
   email: {
     type: String,
     required: true,
     trim: true,
-    unique: true, // Garantiza que no se repita el email en la base de datos
-    lowercase: true, // Convierte todo en minusculas
+    unique: true,
+    lowercase: true,
   },
   token: {
     type: String,
-    default: () => uniqueToken(), // Genera un token único al crear un usuario
+    default: () => uniqueToken(),
   },
   verified: {
     type: Boolean,
-    default: false, // Al crear un usuario, no está verificado por defecto
+    default: false,
   },
   admin: {
     type: Boolean,
-    default: false, // Los usuarios creados no son administradores por defecto
+    default: false,
   },
 });
 
-// Middleware para hashear la contraseña antes de guardarla en la BD
 userSchema.pre("save", async function (next) {
-  // Verificar si la contraseña ha sido modificada y si si, hashearla
   if (!this.isModified("password")) {
     next();
   }
 
-  const salt = await bcrypt.genSalt(10); // Generar un salt para el hash
-  this.password = await bcrypt.hash(this.password, salt); // Hashear la contraseña
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
 });
 
 userSchema.methods.checkPassword = async function (inputPassword) {
-  return await bcrypt.compare(inputPassword, this.password); // Comparar contraseñas
+  return await bcrypt.compare(inputPassword, this.password);
 };
 
-// Creación del modelo de usuario
 const User = mongoose.model("User", userSchema);
-export default User; // Exportación del modelo
+export default User;

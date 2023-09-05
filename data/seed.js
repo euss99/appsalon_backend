@@ -9,8 +9,6 @@ await db();
 
 async function seedDB() {
   try {
-    // insertMany es un método de mongoose que permite insertar varios documentos a la vez en una colección.
-    // services es un array de objetos que contiene los datos de los servicios.
     await Services.insertMany(services);
     console.log(colors.green.bold("Se agregaron los datos correctamente"));
     process.exit(0);
@@ -22,7 +20,6 @@ async function seedDB() {
 
 async function clearDB() {
   try {
-    // deleteMany es un método de mongoose que permite eliminar varios documentos a la vez en una colección.
     await Services.deleteMany();
     console.log(colors.red.bold("Se eliminaron los datos correctamente"));
     process.exit(0);

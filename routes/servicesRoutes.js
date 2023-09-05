@@ -16,10 +16,4 @@ router
   .put(updateService)
   .delete(deleteService);
 
-// router.get("/", getAllServices);
-// router.post("/", createServices);
-// router.get("/:id", getServicesById);
-// router.put("/:id", updateService);
-// router.delete("/:id", deleteService);
-
 export default router;

@@ -1,7 +1,6 @@
 import { createTransporter } from "../config/nodemailer.js";
 
 export async function sendEmailVerification({ name, email, token }) {
-  // Nos crea el transporter que tendrá los métodos para enviar emails, en este caso usamos Mailtrap
   const transporter = createTransporter(
     process.env.EMAIL_HOST,
     process.env.EMAIL_PORT,
@@ -9,12 +8,11 @@ export async function sendEmailVerification({ name, email, token }) {
     process.env.EMAIL_PASS
   );
 
-  // Enviar el email
   const info = await transporter.sendMail({
-    from: "AppSalon <appSalon@correo.com>", // Quien envía el email
-    to: email, // A quien se le envía el email
-    subject: "Confirma tu cuenta en AppSalon", // Asunto del email
-    text: "Hola,", // Contenido del email en texto plano
+    from: "AppSalon <appSalon@correo.com>",
+    to: email,
+    subject: "Confirma tu cuenta en AppSalon",
+    text: "Hola,",
     html: `
       <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
         <h2 style="color: #333;">¡Hola ${name},</h2>
@@ -26,10 +24,9 @@ export async function sendEmailVerification({ name, email, token }) {
         <p style="font-size: 16px;">Saludos,</p>
         <p style="font-size: 16px;">El equipo de AppSalon</p>
       </div>
-      `, // Contenido del email en HTML con estilos y una imagen
+      `,
   });
 
-  // info nos devuelve un objeto con la información del email enviado
   console.log("Mensaje enviado: ", info.messageId);
 }
 
@@ -41,7 +38,6 @@ export async function sendEmailPasswordReset({ name, email, token }) {
     process.env.EMAIL_PASS
   );
 
-  // Enviar el email
   const info = await transporter.sendMail({
     from: "AppSalon <appSalon@correo.com>",
     to: email,

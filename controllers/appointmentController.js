@@ -9,24 +9,16 @@ import {
   sendEmailUpdateAppointmentToAdmin,
   sendEmailCancelledAppointmentToAdmin,
 } from "../emails/appointmentEmailService.js";
-/*
-  parse: Convierte una fecha de string a date
-  formatISO: Convierte una fecha a formato ISO
-  startOfDay: Convierte una fecha a las 00:00:00
-  endOfDay: Convierte una fecha a las 23:59:59
-  isValid: Comprueba si una fecha es valida
-*/
 import Appointment from "../models/Appointment.js";
 
 const createAppointment = async (req, res) => {
-  const appointment = req.body; // Obtenemos los datos de la cita
-  appointment.user = req.user._id.toString(); // Almacenamos el id del usuario que creo la cita en formato string
+  const appointment = req.body;
+  appointment.user = req.user._id.toString();
 
   try {
     const newAppointment = new Appointment(appointment);
     const result = await newAppointment.save();
 
-    // Enviamos el email
     await sendEmailNewAppointmentToAdmin({
       date: convertToPPPPDate(result.date),
       time: result.time,
@@ -45,11 +37,9 @@ const createAppointment = async (req, res) => {
 };
 
 const getAppointmentsByDate = async (req, res) => {
-  // req.query es un objeto que contiene todos los parametros que se envian por query string
   const { date } = req.query;
-  const newDate = parse(date, "dd/MM/yyyy", new Date()); // Convertimos la fecha de string a date
+  const newDate = parse(date, "dd/MM/yyyy", new Date());
 
-  // Comprobamos que la fecha sea valida
   if (!isValid(newDate)) {
     const error = new Error("La fecha no valida");
 
@@ -58,16 +48,15 @@ const getAppointmentsByDate = async (req, res) => {
     });
   }
 
-  const isoDate = formatISO(newDate); // Convertimos la fecha a formato ISO
+  const isoDate = formatISO(newDate);
 
   try {
-    // Buscará todas las citas que tengan una fecha mayor o igual a las 00:00:00 y menor o igual a las 23:59:59 del día que se envió por query string
     const appointments = await Appointment.find({
       date: {
-        $gte: startOfDay(new Date(isoDate)), // Mayor o igual a las 00:00:00, $gte: greater than or equal (mayor o igual)
-        $lte: endOfDay(new Date(isoDate)), // Menor o igual a las 23:59:59, $lte: less than or equal (menor o igual)
+        $gte: startOfDay(new Date(isoDate)),
+        $lte: endOfDay(new Date(isoDate)),
       },
-    }).select("time"); // Seleccionamos que nos devuelva solamente el campo time
+    }).select("time");
 
     res.json(appointments);
   } catch (error) {
@@ -78,18 +67,13 @@ const getAppointmentsByDate = async (req, res) => {
 const getAppointmentById = async (req, res) => {
   const { id } = req.params;
 
-  // Validar que sea un ObjectId valido
   if (validateObjectId(id, res)) return;
 
-  // Validar que la cita exista
   const appointment = await Appointment.findById(id).populate("services");
   if (!appointment) {
     return handleNotFoundError("La cita no existe", res);
   }
 
-  // Validar si la persona que esta autenticada es diferente a la que creo la cita
-  // appointment.user es la persona que creo la cita
-  // req.user._id es la persona que esta autenticada
   if (appointment.user.toString() !== req.user._id.toString()) {
     const error = new Error("No tiene los permisos para ver esta cita");
 

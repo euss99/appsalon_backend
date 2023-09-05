@@ -30,13 +30,9 @@ if (process.argv[2] === "--postman") {
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // origin es la url que esta haciendo la petición
-    // callback es la función que se ejecuta después de validar
     if (whiteList.includes(origin)) {
-      // Permite la conexión
       callback(null, true);
     } else {
-      // No permitir la conección
       callback(new Error("Error de CORS"));
     }
   },
